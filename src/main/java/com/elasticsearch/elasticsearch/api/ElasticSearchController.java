@@ -1,6 +1,7 @@
 package com.elasticsearch.elasticsearch.api;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,5 +41,14 @@ public class ElasticSearchController {
 	     public ResponseEntity<Object> findProduct(@PathVariable("id") String id) throws ElasticsearchException, IOException{
 	    	 Product product = elasticSearchQuery.getDocumentById(id);
 	    	 return new ResponseEntity<>(product, HttpStatus.FOUND);
+	     }
+	     
+	     
+
+	     @GetMapping("/findAllDocuments")
+	     
+	     public ResponseEntity<Object> findAllProduct() throws ElasticsearchException, IOException{
+	    	 List<Product> products = elasticSearchQuery.getAllDocuments();
+	    	 return new ResponseEntity<>(products, HttpStatus.FOUND);
 	     }
 }

@@ -9,9 +9,11 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class Product {
 
 	
-	@Id
+		@Id
+		
+		private String id;
 	
-	private String id;
+	
 	   @Field(type = FieldType.Text, name = "name")
 	    private String name;
 
