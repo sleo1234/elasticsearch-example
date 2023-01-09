@@ -19,69 +19,79 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 @Repository
 public class ProductRepository {
 
+	@Autowired
+	private ElasticsearchClient elasticsearchClient;
+
+	private final String indexName = "products";
+
 	
-	  @Autowired
-	    private ElasticsearchClient elasticsearchClient;
-	    
-	  private final String indexName = "products";
-	  
-	  public String createOrUpdateDocument(Product product) throws IOException {
-		  
-		  if (product.getId() == null) {
-			  
-			  
-			  product.setId(RandomStringUtils.random(10, true, true));
-		  }
-		  IndexResponse response = elasticsearchClient.index(i-> i.index(indexName)
-				                                                .id(product.getId())
-				                                                .document(product));
-				                                               
-		  
-		  
-		  
-		  
-	        if(response.result().name().equals("Created")){
-	            return new StringBuilder("Document has been successfully created.").toString();
-	        }else if(response.result().name().equals("Updated")){
-	            return new StringBuilder("Document has been successfully updated.").toString();
-	        }
-	        return new StringBuilder("Error while performing the operation.").toString();
-	    
 
-	 
-		  
-	  }
-	  
-	  
-	  public Product getDocumentById (String id) throws ElasticsearchException, IOException {
-		  Product product = null;
-	        GetResponse<Product> response = elasticsearchClient.get(g -> g
-	                        .index(indexName)
-	                        .id(id),
-	                Product.class
-	        );
+	public String createOrUpdateDocument(Product product) throws IOException {
 
-	        if (response.found()) {
-	             product = response.source();
-	            System.out.println("Product name " + product.getName());
-	        } else {
-	            System.out.println ("Product not found");
-	        }
+		if (product.getId() == null) {
 
-	       return product;
-	  }
-	 
-	  public List<Product> getAllDocuments() throws IOException{
-		  List<Product> products = new ArrayList<>();
-		 
-		  SearchRequest searchRequest =  SearchRequest.of(s -> s.index(indexName));
-	        SearchResponse searchResponse =  elasticsearchClient.search(searchRequest, Product.class);
-	        List<Hit> hits = searchResponse.hits().hits();
-	        
-	       for ( Hit object : hits) {
-	    	   products.add((Product) object.source());
-	       }
-		  return products;
-	  }
-	  
+			product.setId(RandomStringUtils.random(10, true, true));
+		}
+		IndexResponse response = elasticsearchClient
+				.index(i -> i.index(indexName).id(product.getId()).document(product));
+
+		if (response.result().name().equals("Created")) {
+			return new StringBuilder("Document has been successfully created.").toString();
+		} else if (response.result().name().equals("Updated")) {
+			return new StringBuilder("Document has been successfully updated.").toString();
+		}
+		return new StringBuilder("Error while performing the operation.").toString();
+
+	}
+
+	public Product getDocumentById(String id) throws ElasticsearchException, IOException {
+		Product product = null;
+		GetResponse<Product> response = elasticsearchClient.get(g -> g.index(indexName).id(id), Product.class);
+
+		if (response.found()) {
+			product = response.source();
+			System.out.println("Product name " + product.getName());
+		} else {
+			System.out.println("Product not found");
+		}
+
+		return product;
+	}
+
+	public List<Product> getAllDocuments() throws IOException {
+		List<Product> products = new ArrayList<>();
+
+		SearchRequest searchRequest = SearchRequest.of(s -> s.index(indexName));
+		SearchResponse searchResponse = elasticsearchClient.search(searchRequest, Product.class);
+		List<Hit> hits = searchResponse.hits().hits();
+
+		for (Hit object : hits) {
+			products.add((Product) object.source());
+		}
+		return products;
+	}
+
+	public List<Product> getNamesThatContains(String fieldName) throws ElasticsearchException, IOException {
+
+		
+
+		SearchResponse<Product> searchResponse = elasticsearchClient
+				.search(s -> s
+					    .index(indexName) 
+					    .query(q -> q      
+					        .match(t -> t   
+					            .field("name")  
+					            .query(fieldName)
+					        )
+					    ),
+					    Product.class      
+					);
+		
+		List<Hit<Product>> hitsResponse = searchResponse.hits().hits();
+          List<Product> hitsRes = (List<Product>) searchResponse.hits();
+	
+          return hitsRes;
+
+}
+
 }

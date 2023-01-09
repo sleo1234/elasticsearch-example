@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.elasticsearch.elasticsearch.Product;
@@ -49,6 +50,12 @@ public class ElasticSearchController {
 	     
 	     public ResponseEntity<Object> findAllProduct() throws ElasticsearchException, IOException{
 	    	 List<Product> products = elasticSearchQuery.getAllDocuments();
+	    	 return new ResponseEntity<>(products, HttpStatus.FOUND);
+	     }
+	     @GetMapping("/findDocumentThatContains")
+	     
+	     public ResponseEntity<Object> findDocumentThatContains(@RequestParam String fieldName) throws ElasticsearchException, IOException{
+	    	 List<Product> products = elasticSearchQuery.getNamesThatContains(fieldName);
 	    	 return new ResponseEntity<>(products, HttpStatus.FOUND);
 	     }
 }
