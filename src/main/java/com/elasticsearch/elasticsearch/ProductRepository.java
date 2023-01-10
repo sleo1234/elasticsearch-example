@@ -73,7 +73,7 @@ public class ProductRepository {
 
 	public List<Product> getNamesThatContains(String fieldName) throws ElasticsearchException, IOException {
 
-		
+		List<Product> products = new ArrayList<>();
 
 		SearchResponse<Product> searchResponse = elasticsearchClient
 				.search(s -> s
@@ -88,10 +88,34 @@ public class ProductRepository {
 					);
 		
 		List<Hit<Product>> hitsResponse = searchResponse.hits().hits();
-          List<Product> hitsRes = (List<Product>) searchResponse.hits();
-	
-          return hitsRes;
+		
+          //List<Product> hitsRes = (List<Product>) searchResponse.hits();
+	    
+	     
+	     //for (int i=0; i< hitsRes.size(); i++) {
+	    	 //products.add(hitsResponse.get(i));
+	    // }
+	     
+	     List<Hit<Product>> hits = hitsResponse;
+	     //for (Hit<Product> hit: hits) {
+	     //    products.add(hit.source());
+	       
+	    // }
+	    products = convertTo(hits);
+	     
+	     products.forEach(System.out :: println );
+          return products;
 
 }
+	
+	public <T> List<T> convertTo (List<Hit<T>> hitsList){
+		
+		
+		 List<T> returnedList = new ArrayList<>();
+		for (Hit<T> hit : hitsList) {
+			returnedList.add(hit.source());
+		}
+		return returnedList;
+	}
 
 }
