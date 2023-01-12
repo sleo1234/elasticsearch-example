@@ -10,18 +10,23 @@ import org.springframework.stereotype.Repository;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 
 @Repository
 public class ProductRepository {
 
 	@Autowired
 	private ElasticsearchClient elasticsearchClient;
-
+ 
+	@Autowired
+	GenericRepository repo = new GenericRepository();
 	private final String indexName = "products";
 
 	
@@ -70,43 +75,36 @@ public class ProductRepository {
 		}
 		return products;
 	}
+            
+	public List<Product> getProductThatContains(String searchText) throws ElasticsearchException, IOException{
+		System.out.println("-----------" + searchText);
+		List<Product> products = repo.getByFieldName("name", indexName, searchText);
+		
+		return products;
+	}
 
-	public List<Product> getNamesThatContains(String fieldName) throws ElasticsearchException, IOException {
-
+	
+	public List<Product> getProductFromPriceRange(double minPrice, double maxPrice) throws ElasticsearchException, IOException{
 		List<Product> products = new ArrayList<>();
-
-		SearchResponse<Product> searchResponse = elasticsearchClient
-				.search(s -> s
-					    .index(indexName) 
-					    .query(q -> q      
-					        .match(t -> t   
-					            .field("name")  
-					            .query(fieldName)
-					        )
-					    ),
-					    Product.class      
-					);
+		Query byMaxPrice = RangeQuery.of  (m -> m.field("price")
+				                                     .lte(JsonData.of(maxPrice)))._toQuery();
+				
+		Query byMinPrice = RangeQuery.of  (m -> m.field("price")
+                .gte(JsonData.of(minPrice)))._toQuery();
+                                       
 		
+		SearchResponse searchResponse = elasticsearchClient.search(s -> s.index(indexName)
+				                                                             .query(q -> 
+				                                                             q.bool(b -> 
+				                                                             b.must(byMinPrice).
+				                                                              must(byMaxPrice)))
+				                                                            , Product.class);
 		List<Hit<Product>> hitsResponse = searchResponse.hits().hits();
-		
-          //List<Product> hitsRes = (List<Product>) searchResponse.hits();
+		 List<Hit<Product>> hits = hitsResponse;
 	    
-	     
-	     //for (int i=0; i< hitsRes.size(); i++) {
-	    	 //products.add(hitsResponse.get(i));
-	    // }
-	     
-	     List<Hit<Product>> hits = hitsResponse;
-	     //for (Hit<Product> hit: hits) {
-	     //    products.add(hit.source());
-	       
-	    // }
 	    products = convertTo(hits);
-	     
-	     products.forEach(System.out :: println );
-          return products;
-
-}
+	    return products;
+	}
 	
 	public <T> List<T> convertTo (List<Hit<T>> hitsList){
 		

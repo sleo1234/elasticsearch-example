@@ -55,7 +55,16 @@ public class ElasticSearchController {
 	     @GetMapping("/findDocumentThatContains")
 	     
 	     public ResponseEntity<Object> findDocumentThatContains(@RequestParam String fieldName) throws ElasticsearchException, IOException{
-	    	 List<Product> products = elasticSearchQuery.getNamesThatContains(fieldName);
+	    	 List<Product> products = elasticSearchQuery.getProductThatContains(fieldName);
 	    	 return new ResponseEntity<>(products, HttpStatus.FOUND);
 	     }
+	     
+ @GetMapping("/findBeetween")
+	     
+   public ResponseEntity<Object> findDocumentThatContains(@RequestParam double minPrice, @RequestParam double maxPrice) throws ElasticsearchException, IOException{
+	    	 List<Product> products = elasticSearchQuery.getProductFromPriceRange(minPrice, maxPrice);
+	    	 return new ResponseEntity<>(products, HttpStatus.FOUND);
+	     }
+	     
+	     
 }
